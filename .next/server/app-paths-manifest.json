@@ -1,6 +1,6 @@
 {
   "/page": "app/page.js",
-  "/policy/page": "app/policy/page.js",
   "/booking/[id]/page": "app/booking/[id]/page.js",
-  "/resort/[id]/page": "app/resort/[id]/page.js"
+  "/resort/[id]/page": "app/resort/[id]/page.js",
+  "/policy/page": "app/policy/page.js"
 }
