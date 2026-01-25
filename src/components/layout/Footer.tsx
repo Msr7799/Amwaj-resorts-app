@@ -90,6 +90,12 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
           <p>&copy; {new Date().getFullYear()} جميع الحقوق محفوظة.</p>
+             <br/>
+    <p>
+      <a href="https://github.com/msr7799" className="text-gray-400 hover:text-black transition-colors">
+        Created by ▲ Mohamed Alromaihi
+      </a>
+    </p>
         </div>
       </div>
     </footer>
