@@ -63,7 +63,7 @@ export const resorts: Resort[] = [
       "/assets/resort1/hero4.jpeg",
       "/assets/resort1/hero4.png",
     ],
-    video: "/assets/resort1/full-resort-vedio.mp4",
+    video: "/assets/resort1/resort-vedio.mp4",
     hasPrivatePool: true,
     hasPrivateBeach: true,
     beachAccess: "direct",

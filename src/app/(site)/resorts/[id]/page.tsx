@@ -96,15 +96,56 @@ export default async function ResortDetailPage({ params }: Props) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3 mt-6 sm:flex-row">
+            {/* Payment info text */}
+            <div className="p-4 mt-5 rounded-xl bg-background-hover border border-background-hover">
+              <p className="text-sm text-text mb-2">
+                احجز الآن ببطاقة البنك أو Apple Pay أو Google Pay
+              </p>
+              <p className="text-sm text-text">
+                وسائل الدفع محمية وآمنة وتستخدم SSL وضد انتي فاي ومدعومة من أمنيتي فاي & stripe provider
+              </p>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3 mt-5">
+              <Link
+                href={`/payment?resortId=${id}&resortName=${encodeURIComponent(resort.name)}`}
+                className="inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-white rounded-xl bg-green-600 hover:bg-green-700 transition"
+              >
+                احجز الآن
+              </Link>
+
               <a
                 href={resort.paymentLink || mapLink}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-white rounded-xl bg-black hover:bg-background-hover transition"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium text-white rounded-xl bg-black hover:bg-gray-800 transition"
               >
-                احجز وادفع الآن عبر Stripe
+                <span>ادفع الآن عبر Link</span>
+                <img
+                  src="/payment/link-logo.png"
+                  alt="Stripe Link"
+                  className="w-8 h-5"
+                />
               </a>
+
+              <a
+                href="https://wa.me/97336118277?text=مرحباً، أحتاج مساعدة في الحجز والدفع"
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium text-white rounded-xl bg-[#25D366] hover:bg-[#20BA59] transition"
+              >
+                <img
+                  src="/payment/whatsapp-logo.svg"
+                  alt="WhatsApp"
+                  className="w-5 h-5"
+                />
+                <div className="text-right">
+                  <div className="font-semibold">مساعدة وحلول مصرفية</div>
+                  <div className="text-xs">متاح 24/7</div>
+                </div>
+              </a>
+
               <Link
                 href="/resorts"
                 className="inline-flex items-center justify-center px-5 py-3 text-sm font-medium border rounded-xl border-background-hover text-heading hover:bg-background-hover transition"
