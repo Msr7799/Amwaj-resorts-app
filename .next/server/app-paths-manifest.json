@@ -1,10 +1,12 @@
 {
   "/(site)/contact/page": "app/(site)/contact/page.js",
   "/(site)/page": "app/(site)/page.js",
+  "/(site)/payment/page": "app/(site)/payment/page.js",
   "/(site)/policy/page": "app/(site)/policy/page.js",
   "/(site)/resorts/[id]/page": "app/(site)/resorts/[id]/page.js",
   "/(site)/resorts/page": "app/(site)/resorts/page.js",
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
-  "/api/review/route": "app/api/review/route.js"
+  "/api/review/route": "app/api/review/route.js",
+  "/api/stripe/checkout/route": "app/api/stripe/checkout/route.js"
 }

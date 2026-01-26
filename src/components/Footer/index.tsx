@@ -26,6 +26,7 @@ const payments = [
   { src: "/payment/payment-03.svg", alt: "Mastercard" },
   { src: "/payment/payment-04.svg", alt: "Apple Pay" },
   { src: "/payment/payment-05.svg", alt: "Google Pay" },
+  { src: "/payment/payment-06.svg", alt: "Link" },
 ];
 
 export default function Footer() {
@@ -81,8 +82,8 @@ export default function Footer() {
             &copy; {copyrightDate} {copyrightName}
             {copyrightName.length && !copyrightName.endsWith(".") ? "." : ""} All rights reserved.
           </p>
-          <div className="flex items-center bg-background-hover rounded-lg py-2 px-4 gap-4 md:ml-auto md:mr-6">
-            <span className="text-text">We Accept:</span>
+          <div className="flex items-center justify-center bg-background-hover backdrop-blur-sm backdrop-brightness-950 rounded-lg py-2 px-4 gap-4 md:ml-auto md:mr-6">
+            <span className="text-text/50">We Accept</span>
             <div className="flex items-center gap-3">
               {payments.map((p) => (
                 <img key={p.src} src={p.src} alt={p.alt} className="h-6 w-auto" />

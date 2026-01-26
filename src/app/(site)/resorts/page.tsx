@@ -7,9 +7,29 @@ import Image from "next/image";
 import { resorts } from "@/assets/resorts";
 import { BackgroundGradient } from "@/components/ui/background-gradient";
 import { useRouter } from "next/navigation";
+import { useMemo, useState } from "react";
 
 export default function ResortsPage() {
   const router = useRouter();
+
+  const todayStr = useMemo(() => new Date().toISOString().split("T")[0], []);
+  const [checkIn, setCheckIn] = useState<string>("");
+  const [checkOut, setCheckOut] = useState<string>("");
+  const [guests, setGuests] = useState<number>(2);
+
+  const buildResortHref = (id: string) => {
+    const sp = new URLSearchParams();
+    if (checkIn) sp.set("checkIn", checkIn);
+    if (checkOut) sp.set("checkOut", checkOut);
+    sp.set("guests", String(guests || 1));
+    const qs = sp.toString();
+    return qs ? `/resorts/${id}?${qs}` : `/resorts/${id}`;
+  };
+
+  const onOpenResort = (id: string) => {
+    router.push(buildResortHref(id));
+  };
+
   return (
     <main className="pt-28">
       <section className="px-4 mx-auto max-w-7xl sm:px-6 xl:px-4">
@@ -22,8 +42,78 @@ export default function ResortsPage() {
           </p>
         </div>
 
+        {/* Booking bar */}
+        <div className="mb-28 rounded-2xl border border-background-hover bg-background-hover p-4">
+          <div className="grid gap-4 md:grid-cols-5 ">
+            <div>
+              <label className="block mb-2 text-sm font-medium text-text">
+                تاريخ الدخول
+              </label>
+              <input
+                type="date"
+                value={checkIn}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setCheckIn(v);
+                  if (checkOut && v && checkOut <= v) {
+                    setCheckOut("");
+                  }
+                }}
+                min={todayStr}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:border-gray-700 bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-text">
+                تاريخ الخروج
+              </label>
+              <input
+                type="date"
+                value={checkOut}
+                onChange={(e) => setCheckOut(e.target.value)}
+                min={checkIn || todayStr}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:border-gray-700 bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="block mb-2 text-sm font-medium text-text">
+                عدد الضيوف
+              </label>
+              <input
+                type="number"
+                value={guests}
+                onChange={(e) => setGuests(Number(e.target.value || 1))}
+                min={1}
+                max={12}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:border-gray-700 bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-end">
+              <button
+                type="button"
+                onClick={() => {
+                  if (!checkIn) return;
+                  const first = resorts[0]?.id;
+                  if (first) onOpenResort(first);
+                }}
+                disabled={!checkIn}
+                className="w-full px-5 py-3 text-sm font-medium text-white rounded-xl bg-black hover:bg-black/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                اختر الشاليه وأكمل الحجز
+              </button>
+            </div>
+          </div>
+
+          <p className="mt-3 text-xs text-text">
+            ملاحظة: اختر التواريخ هنا، ثم افتح أي شاليه وسيتم تمرير التواريخ تلقائياً.
+          </p>
+        </div>
+
         {/* Light mode cards */}
-        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3 mb-12 dark:hidden">
+        <div className="grid gap-6 grid-row-2 md:grid-cols-2 xl:grid-cols-1 mb-12 dark:hidden">
           {resorts.map((resort) => {
             const cover =
               resort.images.find((p) => p.includes("hero")) ?? resort.images[0];
@@ -35,8 +125,8 @@ export default function ResortsPage() {
                 key={`light-${resort.id}`}
                 className="overflow-hidden bg-white border rounded-xl border-gray-200"
               >
-                <div className="relative w-full h-56 bg-gray-50 ">
-                  <button onClick={() => router.push(`/resorts/${resort.id}`)}>
+                <div className="w-full h-56 bg-gray-50 ">
+                  <button onClick={() => onOpenResort(resort.id)}>
                   <Image
                     src={cover}
                     alt={resort.name}
@@ -90,7 +180,7 @@ export default function ResortsPage() {
                     </div>
 
                     <Link
-                      href={`/resorts/${resort.id}`}
+                      href={buildResortHref(resort.id)}
                       className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-black hover:bg-background transition"
                     >
                       التفاصيل
@@ -103,7 +193,7 @@ export default function ResortsPage() {
         </div>
 
         {/* Dark mode cards with gradient */}
-        <div className="relative hidden dark:grid gap-6 md:grid-cols-2 xl:grid-cols-2mb-12">
+        <div className="relative hidden dark:grid gap-6 md:grid-cols-2 xl:grid-cols-2 mb-12">
           {resorts.map((resort) => {
             const cover =
               resort.images.find((p) => p.includes("hero")) ?? resort.images[0];
@@ -116,7 +206,7 @@ export default function ResortsPage() {
                 className="overflow-hidden bg-[#18181b] rounded-xl"
               >
                 <div className="relative w-full h-56 bg-[#18181b]">
-                  <button onClick={() => router.push(`/resorts/${resort.id}`)}>
+                  <button onClick={() => onOpenResort(resort.id)}>
                   <Image
                     src={cover}
                     alt={resort.name}
@@ -170,7 +260,7 @@ export default function ResortsPage() {
                     </div>
 
                     <Link
-                      href={`/resorts/${resort.id}`}
+                      href={buildResortHref(resort.id)}
                       className="inline-flex items-center justify-center px-4 py-2 text-sm font-medium text-white rounded-lg bg-black hover:bg-background transition"
                     >
                       التفاصيل
