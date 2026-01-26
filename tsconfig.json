@@ -1,5 +1,6 @@
-                {
+{
   "compilerOptions": {
+    "target": "es2015",
     "lib": [
       "dom",
       "dom.iterable",
@@ -14,7 +15,7 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "jsx": "preserve",
+    "jsx": "react-jsx",
     "incremental": true,
     "plugins": [
       {
@@ -23,19 +24,8 @@
     ],
     "paths": {
       "@/*": [
-        "./src/*"
-      ],
-      "@/components/*": [
-        "./src/components/*"
-      ],
-      "@/lib/*": [
-        "./src/lib/*"
-      ],
-      "@/types/*": [
-        "./src/types/*"
-      ],
-      "@/data/*": [
-        "./src/data/*"
+        "./src/*",
+        "./lib/*"
       ]
     }
   },
@@ -43,8 +33,13 @@
     "next-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "Amwaj-resorts-app/.next/types/**/*.ts",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "tailwind.config.js",
+    "reindex.js",
+    "src/algolia/reindex.ts",
+    "src/algolia/reindex.ts",
+    "scripts/import-demo-data.js",
+    ".next/dev/types/**/*.ts"
   ],
   "exclude": [
     "node_modules"
