@@ -193,7 +193,7 @@ export default function PaymentClient() {
               <p className="text-text">شاهد كيفية الدفع بواسطة Apple Pay من Apple مباشرة</p>
             </div>
 
-            <div className="w-full max-w-sm">
+            <div className="w-full max-w-[240px] sm:max-w-[280px] md:max-w-[240px] lg:max-w-[260px]">
               <Iphone
                 src="/payment/app;e-pay.gif"
                 mediaClassName="object-contain"

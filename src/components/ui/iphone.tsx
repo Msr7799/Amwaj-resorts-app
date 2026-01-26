@@ -104,7 +104,7 @@ export function Iphone({
           <img
             src={src}
             alt=""
-            className={`block size-full ${mediaClass} object-top`}
+            className={`block size-full ${mediaClass}`}
           />
         </div>
       )}
