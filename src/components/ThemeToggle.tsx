@@ -69,7 +69,7 @@ export function ThemeToggle() {
       ref={buttonRef}
       onClick={toggleTheme}
       disabled={isAnimating}
-      className="relative p-2.5 rounded-xl bg-background-hover hover:bg-primary/20 transition-all duration-200 overflow-hidden group disabled:opacity-50"
+      className="relative p-2.5 rounded-xl border border-gray-300/70 bg-white shadow-sm hover:bg-gray-50 transition-all duration-200 overflow-hidden group disabled:opacity-50 dark:bg-background-hover dark:border-background-hover dark:shadow-none dark:hover:bg-primary/20"
       aria-label="Toggle theme"
     >
       <div className="relative z-10">
@@ -89,7 +89,7 @@ export function ThemeToggle() {
           </svg>
         ) : (
           <svg
-            className="w-5 h-5 text-primary transition-transform duration-300 group-hover:-rotate-12"
+            className="w-5 h-5 text-gray-900 transition-transform duration-300 group-hover:-rotate-12 dark:text-primary"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"

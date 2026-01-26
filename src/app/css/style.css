@@ -194,12 +194,19 @@
   font-size: 35px;
   line-height: 1;
   display: inline-block;
-  background: linear-gradient(to bottom, #f4f4f4 0%, #cccccc 100%);
+  background: linear-gradient(to bottom, #0a0a0a 0%, #374151 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
   font-variation-settings:
     "GRAD" -50;
+}
+
+.dark .amwaj-brand-text {
+  background: linear-gradient(to bottom, #f4f4f4 0%, #cccccc 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .amwaj-brand-lockup {
