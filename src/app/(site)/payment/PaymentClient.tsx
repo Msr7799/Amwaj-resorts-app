@@ -193,26 +193,22 @@ export default function PaymentClient() {
               <p className="text-text">شاهد كيفية الدفع بواسطة Apple Pay من Apple مباشرة</p>
             </div>
 
-            <div className="relative w-full max-w-sm">
-              <Iphone className="mx-auto" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
-                <p className="text-sm text-text">
-                  لعرض الفيديوهات التعليمية الرسمية من Apple، افتح الرابط مباشرة.
-                </p>
-                <a
-                  href="https://www.apple.com/apple-pay/how-to/#video-pay-online"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="mt-4 inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-white rounded-lg bg-black hover:bg-black/90 transition"
-                >
-                  فتح شرح Apple Pay من Apple
-                </a>
-              </div>
+            <div className="w-full max-w-sm">
+              <Iphone
+                src="/payment/app;e-pay.gif"
+                mediaClassName="object-contain"
+                className="mx-auto"
+              />
             </div>
 
-            <p className="mt-6 text-sm text-center text-text">
-              💡 استكشف داخل الهاتف لرؤية طريقة الدفع من Apple
-            </p>
+            <a
+              href="https://www.apple.com/apple-pay/how-to/#video-pay-online"
+              target="_blank"
+              rel="noreferrer"
+              className="mt-6 text-sm text-primary hover:underline"
+            >
+              فتح المصدر الرسمي من Apple
+            </a>
           </div>
         </div>
       </div>

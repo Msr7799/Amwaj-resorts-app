@@ -20,12 +20,14 @@ export interface IphoneProps extends HTMLAttributes<HTMLDivElement> {
   src?: string;
   videoSrc?: string;
   iframeSrc?: string;
+  mediaClassName?: string;
 }
 
 export function Iphone({
   src,
   videoSrc,
   iframeSrc,
+  mediaClassName,
   className,
   style,
   ...props
@@ -33,6 +35,7 @@ export function Iphone({
   const hasVideo = !!videoSrc;
   const hasIframe = !!iframeSrc;
   const hasMedia = hasVideo || !!src || hasIframe;
+  const mediaClass = mediaClassName ?? "object-cover";
 
   return (
     <div
@@ -55,7 +58,7 @@ export function Iphone({
           }}
         >
           <video
-            className="block size-full object-cover"
+            className={`block size-full ${mediaClass}`}
             src={videoSrc}
             autoPlay
             loop
@@ -101,7 +104,7 @@ export function Iphone({
           <img
             src={src}
             alt=""
-            className="block size-full object-cover object-top"
+            className={`block size-full ${mediaClass} object-top`}
           />
         </div>
       )}
