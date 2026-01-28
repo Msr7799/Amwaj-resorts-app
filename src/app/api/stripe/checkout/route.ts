@@ -9,6 +9,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
+      resortId,
       resortName,
       checkIn,
       checkOut,
@@ -29,6 +30,22 @@ export async function POST(req: NextRequest) {
     const depositAmount = Math.round(
       Number(deposit ?? 50) * minorUnitMultiplier
     );
+
+    const origin =
+      req.headers.get("origin") ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "http://localhost:3000";
+
+    const defaultSuccessUrl = `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
+    const envSuccessUrl = process.env.NEXT_PUBLIC_SUCCESS_URL;
+
+    const successUrl =
+      envSuccessUrl && envSuccessUrl.includes("{CHECKOUT_SESSION_ID}")
+        ? envSuccessUrl
+        : defaultSuccessUrl;
+
+    const cancelUrl =
+      process.env.NEXT_PUBLIC_CANCEL_URL || `${origin}/payment?canceled=1`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -64,14 +81,16 @@ export async function POST(req: NextRequest) {
         },
       ],
       mode: "payment",
-      success_url: `${process.env.NEXT_PUBLIC_SUCCESS_URL}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_CANCEL_URL}`,
+      success_url: successUrl,
+      cancel_url: cancelUrl,
       ...(email ? { customer_email: email } : {}),
       metadata: {
+        ...(resortId ? { resortId } : {}),
         resortName,
         checkIn,
         checkOut,
         nights,
+        currency,
         ...(fullName ? { fullName } : {}),
         phone,
         ...(guests ? { guests } : {}),

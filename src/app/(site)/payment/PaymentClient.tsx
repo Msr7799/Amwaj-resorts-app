@@ -22,6 +22,7 @@ export default function PaymentClient() {
     checkIn?: string;
     checkOut?: string;
     guests?: string | number;
+    email?: string;
     phone?: string;
   } | null>(null);
 
@@ -61,7 +62,7 @@ export default function PaymentClient() {
       phone: phone || draft?.phone || "",
       guests: guests || (draft?.guests != null ? String(draft.guests) : ""),
       fullName,
-      email,
+      email: email || draft?.email || "",
     };
   }, [checkIn, checkOut, phone, guests, draft, fullName, email]);
 
@@ -111,8 +112,8 @@ export default function PaymentClient() {
   }, [resort, resortName, currency, effective.checkIn, effective.checkOut, nights, totalPrice]);
 
   const handlePayment = async () => {
-    if (!effective.checkIn || !effective.checkOut || !effective.phone) {
-      setError("يرجى إدخال تاريخ الدخول والخروج ورقم التواصل أولاً");
+    if (!effective.checkIn || !effective.checkOut || !effective.phone || !effective.email) {
+      setError("يرجى إدخال تاريخ الدخول والخروج ورقم التواصل والبريد الإلكتروني أولاً");
       return;
     }
 
@@ -305,10 +306,10 @@ export default function PaymentClient() {
                     <span className="font-medium text-heading">{fullName}</span>
                   </div>
                 ) : null}
-                {email ? (
+                {effective.email ? (
                   <div className="flex justify-between">
                     <span className="text-text">البريد:</span>
-                    <span className="font-medium text-heading">{email}</span>
+                    <span className="font-medium text-heading">{effective.email}</span>
                   </div>
                 ) : null}
                 <div className="flex justify-between">

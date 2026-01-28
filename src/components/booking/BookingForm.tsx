@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Resort } from "@/types/resort";
 import { calculateNights, calculateTotalPrice } from "@/utils/utils";
 
@@ -13,11 +13,13 @@ export default function BookingForm({ resort }: BookingFormProps) {
   const checkInRef = useRef<HTMLInputElement | null>(null);
   const checkOutRef = useRef<HTMLInputElement | null>(null);
   const guestsRef = useRef<HTMLInputElement | null>(null);
+  const emailRef = useRef<HTMLInputElement | null>(null);
   const phoneRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState({
     checkIn: "",
     checkOut: "",
     guests: 2,
+    email: "",
     phone: "",
   });
   const formDataRef = useRef(formData);
@@ -42,7 +44,7 @@ export default function BookingForm({ resort }: BookingFormProps) {
     }
   }, [storageKey]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
@@ -82,6 +84,8 @@ export default function BookingForm({ resort }: BookingFormProps) {
         )
       : 0;
 
+  const depositAmount = typeof resort.deposit === "number" ? resort.deposit : 50;
+
   const focusField = (field: string) => {
     const el =
       field === "checkIn"
@@ -90,6 +94,8 @@ export default function BookingForm({ resort }: BookingFormProps) {
           ? checkOutRef.current
           : field === "guests"
             ? guestsRef.current
+            : field === "email"
+              ? emailRef.current
             : field === "phone"
               ? phoneRef.current
               : null;
@@ -120,6 +126,13 @@ export default function BookingForm({ resort }: BookingFormProps) {
     if (!Number.isFinite(guestsNumber) || guestsNumber < 1) {
       newErrors.guests = "يرجى إدخال عدد الضيوف";
     }
+    if (!String((data as typeof formData).email ?? "").trim()) {
+      newErrors.email = "يرجى إدخال البريد الإلكتروني";
+    } else {
+      const emailValue = String((data as typeof formData).email).trim();
+      const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailValue);
+      if (!emailOk) newErrors.email = "يرجى إدخال بريد إلكتروني صحيح";
+    }
     if (!data.phone.trim()) {
       newErrors.phone = "يرجى إدخال رقم الهاتف";
     }
@@ -127,7 +140,7 @@ export default function BookingForm({ resort }: BookingFormProps) {
     setErrors(newErrors);
 
     if (opts?.focus && Object.keys(newErrors).length) {
-      const order = ["checkIn", "checkOut", "guests", "phone"];
+      const order = ["checkIn", "checkOut", "guests", "email", "phone"];
       const first = order.find((k) => Boolean(newErrors[k]));
       if (first) focusField(first);
     }
@@ -243,7 +256,7 @@ export default function BookingForm({ resort }: BookingFormProps) {
         {/* Guests */}
         <div>
           <label className="block mb-2 text-sm font-medium text-text">
-            👥 عدد الضيوف
+            � عدد الضيوف
           </label>
           <div className="relative">
             {errors.guests ? <ErrorIcon /> : null}
@@ -263,6 +276,33 @@ export default function BookingForm({ resort }: BookingFormProps) {
           </div>
           {errors.guests && (
             <p className="mt-1 text-xs text-red-500">{errors.guests}</p>
+          )}
+        </div>
+
+        {/* Email */}
+        <div>
+          <label className="block mb-2 text-sm font-medium text-text">
+            ✉️ البريد الإلكتروني
+          </label>
+          <div className="relative">
+            {errors.email ? <ErrorIcon /> : null}
+            <input
+              ref={emailRef}
+              required
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="example@email.com"
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none ${
+                errors.email
+                  ? "border-red-500 pl-10"
+                  : "border-gray-300 dark:border-gray-700"
+              }`}
+            />
+          </div>
+          {errors.email && (
+            <p className="mt-1 text-xs text-red-500">{errors.email}</p>
           )}
         </div>
 
@@ -308,13 +348,13 @@ export default function BookingForm({ resort }: BookingFormProps) {
             </div>
             <div className="flex justify-between mb-2 text-sm">
               <span className="text-text">مبلغ التأمين:</span>
-              <span className="font-semibold text-heading">50 {resort.currency}</span>
+              <span className="font-semibold text-heading">{depositAmount} {resort.currency}</span>
             </div>
             <div className="pt-2 border-t border-primary/20">
               <div className="flex justify-between text-lg font-bold">
                 <span className="text-heading">المجموع:</span>
                 <span className="text-primary">
-                  {totalPrice + 50} {resort.currency}
+                  {totalPrice + depositAmount} {resort.currency}
                 </span>
               </div>
             </div>
