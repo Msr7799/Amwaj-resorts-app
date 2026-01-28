@@ -32,20 +32,34 @@ export async function POST(req: NextRequest) {
     );
 
     const origin =
+      req.nextUrl.origin ||
       req.headers.get("origin") ||
       process.env.NEXT_PUBLIC_SITE_URL ||
       "http://localhost:3000";
+
+    const isLocalOrigin =
+      origin.includes("localhost") || origin.includes("127.0.0.1");
 
     const defaultSuccessUrl = `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
     const envSuccessUrl = process.env.NEXT_PUBLIC_SUCCESS_URL;
 
     const successUrl =
-      envSuccessUrl && envSuccessUrl.includes("{CHECKOUT_SESSION_ID}")
+      envSuccessUrl &&
+      envSuccessUrl.includes("{CHECKOUT_SESSION_ID}") &&
+      (isLocalOrigin ||
+        (!envSuccessUrl.includes("localhost") &&
+          !envSuccessUrl.includes("127.0.0.1")))
         ? envSuccessUrl
         : defaultSuccessUrl;
 
+    const envCancelUrl = process.env.NEXT_PUBLIC_CANCEL_URL;
     const cancelUrl =
-      process.env.NEXT_PUBLIC_CANCEL_URL || `${origin}/payment?canceled=1`;
+      envCancelUrl &&
+      (isLocalOrigin ||
+        (!envCancelUrl.includes("localhost") &&
+          !envCancelUrl.includes("127.0.0.1")))
+        ? envCancelUrl
+        : `${origin}/payment?canceled=1`;
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
