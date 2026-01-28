@@ -2,6 +2,8 @@ import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 
+export const runtime = "nodejs";
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   // apiVersion intentionally omitted to match the installed Stripe SDK types
 });
