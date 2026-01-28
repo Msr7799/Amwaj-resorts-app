@@ -1,9 +1,10 @@
 import Image from "next/image";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getResortById } from "@/assets/resorts";
+import BookingForm from "@/components/booking/BookingForm";
 import { ResortDetailClient } from "./ResortDetailClient";
+import ResortActionButtons from "./ResortActionButtons";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -96,6 +97,10 @@ export default async function ResortDetailPage({ params }: Props) {
               </div>
             </div>
 
+            <div className="mt-5">
+              <BookingForm resort={resort} />
+            </div>
+
             {/* Payment info text */}
             <div className="p-4 mt-5 rounded-xl bg-background-hover border border-background-hover">
               <p className="text-sm text-text mb-2">
@@ -107,82 +112,12 @@ export default async function ResortDetailPage({ params }: Props) {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col gap-3 mt-5">
-              <Link
-                href={`/payment?resortId=${id}&resortName=${encodeURIComponent(resort.name)}`}
-                className="inline-flex items-center border-2 border-white/60 justify-center px-5 py-3 text-sm font-medium text-white rounded-xl bg-green-600 hover:bg-green-700 transition"
-              >
-                احجز الآن
-             
-              
-             <img
-                  src="/payment/payment-01.svg"
-                  alt="Stripe Link"
-                  className="w-8 h-8 mr-5 mb-1"
-                />
-                <img
-                  src="/payment/payment-03.svg"
-                  alt="Stripe Link"
-                  className="w-8 h-8 mr-5 mb-1"
-                />
-                <img
-                  src="/payment/payment-02.svg"
-                  alt="Stripe Link"
-                  className="w-8 h-8 mr-5 mb-1"
-                />
-                <img
-                  src="/payment/payment-04.svg"
-                  alt="Stripe Link"
-                  className="w-16 h-8 mr-5 mb-1 filter backdrop-brightness-2000  border-2 border-white/20 rounded-md"
-                />
-                <img
-                  src="/payment/payment-05.svg"
-                  alt="Stripe Link"
-                  className="w-19 h-10 mr-5 mb-1 filter backdrop-brightness-0  border-2 border-white/20 rounded-md"
-                />
-
-              </Link>
-              
-              <a
-                href={resort.paymentLink || mapLink}
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-5 py-4 text-sm font-medium text-white rounded-xl bg-black hover:bg-gray-800 transition"
-              >
-                <span>ادفع الآن عبر Link</span>
-                <img
-                  src="/payment/link-logo.png"
-                  alt="Stripe Link"
-                  className="w-8 h-8 mr-12 mb-1"
-                />
-              </a>
-
-              <a
-                href="https://wa.me/97336118277?text=مرحباً، أحتاج مساعدة في الحجز والدفع"
-                target="_blank"
-                rel="noreferrer"
-                className="inline-flex items-center justify-center gap-2 px-5 py-3 text-sm font-medium text-white rounded-xl bg-black hover:bg-gray-800 transition"
-              >
-             
-                <div className="text-right">
-                  <div className="font-semibold">مساعدة وحلول مصرفية</div>
-                  <div className="text-xs">متاح 24/7</div>
-                  
-                </div>
-                <img
-                  src="/payment/whatsapp-logo.svg"
-                  alt="WhatsApp"
-                  className="w-8 h-8 mr-10 mb-1"
-                />
-              </a>
-
-              <Link
-                href="/resorts"
-                className="inline-flex items-center justify-center px-5 py-3 text-sm font-medium border rounded-xl border-background-hover text-heading hover:bg-background-hover transition"
-              >
-                رجوع لكل الشاليهات
-              </Link>
-            </div>
+            <ResortActionButtons
+              id={id}
+              resortName={resort.name}
+              paymentLink={resort.paymentLink}
+              mapLink={mapLink}
+            />
 
             <div className="flex flex-wrap gap-4 mt-6 text-sm text-text">
               {resort.checkIn && (

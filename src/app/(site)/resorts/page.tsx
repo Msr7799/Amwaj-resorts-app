@@ -113,7 +113,7 @@ export default function ResortsPage() {
         </div>
 
         {/* Light mode cards */}
-        <div className="grid gap-6 grid-row-2 md:grid-cols-2 xl:grid-cols-1 mb-12 dark:hidden">
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2 mb-12 dark:hidden">
           {resorts.map((resort) => {
             const cover =
               resort.images.find((p) => p.includes("hero")) ?? resort.images[0];
@@ -125,9 +125,8 @@ export default function ResortsPage() {
                 key={`light-${resort.id}`}
                 className="overflow-hidden bg-white border rounded-xl border-gray-200"
               >
-                <div className="w-full h-56 bg-gray-50 ">
-                  <button onClick={() => onOpenResort(resort.id)}>
-                  <Image
+   <div className="relative w-full h-56 bg-gray-50 ">
+                  <button className="w-full h-full" onClick={() => onOpenResort(resort.id)}>                  <Image
                     src={cover}
                     alt={resort.name}
                     fill

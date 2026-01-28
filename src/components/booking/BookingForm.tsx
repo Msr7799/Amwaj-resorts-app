@@ -1,141 +1,213 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Resort } from "@/types/resort";
-import { useRouter } from "next/navigation";
+import { calculateNights, calculateTotalPrice } from "@/utils/utils";
 
 interface BookingFormProps {
   resort: Resort;
 }
 
 export default function BookingForm({ resort }: BookingFormProps) {
-  const router = useRouter();
+  const storageKey = `bookingDraft:${resort.id}`;
+  const checkInRef = useRef<HTMLInputElement | null>(null);
+  const checkOutRef = useRef<HTMLInputElement | null>(null);
+  const guestsRef = useRef<HTMLInputElement | null>(null);
+  const phoneRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState({
     checkIn: "",
     checkOut: "",
     guests: 2,
-    fullName: "",
-    email: "",
     phone: "",
-    specialRequests: "",
-    acceptedTerms: false,
   });
+  const formDataRef = useRef(formData);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
+  useEffect(() => {
+    formDataRef.current = formData;
+  }, [formData]);
+
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(storageKey);
+      if (!raw) return;
+      const parsed = JSON.parse(raw);
+      setFormData((prev) => ({
+        ...prev,
+        ...(parsed && typeof parsed === "object" ? parsed : {}),
+      }));
+    } catch {
+      // ignore
+    }
+  }, [storageKey]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value, type } = e.target;
     const checked = (e.target as HTMLInputElement).checked;
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+    setFormData((prev) => {
+      const next = {
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      } as typeof prev;
+
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+
+      return next;
+    });
 
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: "" }));
     }
   };
 
-  const calculateNights = (checkIn: string, checkOut: string): number => {
-    if (!checkIn || !checkOut) return 0;
-    const start = new Date(checkIn);
-    const end = new Date(checkOut);
-    const diffTime = Math.abs(end.getTime() - start.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
+  const checkInDate = formData.checkIn ? new Date(`${formData.checkIn}T00:00:00`) : null;
+  const checkOutDate = formData.checkOut ? new Date(`${formData.checkOut}T00:00:00`) : null;
+
+  const nights =
+    checkInDate && checkOutDate ? calculateNights(checkInDate, checkOutDate) : 0;
+
+  const totalPrice =
+    checkInDate && checkOutDate
+      ? calculateTotalPrice(
+          resort.priceRegular,
+          resort.priceWeekend,
+          checkInDate,
+          checkOutDate
+        )
+      : 0;
+
+  const focusField = (field: string) => {
+    const el =
+      field === "checkIn"
+        ? checkInRef.current
+        : field === "checkOut"
+          ? checkOutRef.current
+          : field === "guests"
+            ? guestsRef.current
+            : field === "phone"
+              ? phoneRef.current
+              : null;
+
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.focus();
   };
 
-  const calculateTotalPrice = (nights: number): number => {
-    if (nights === 0) return 0;
-    // Simple calculation: all nights at regular price for now
-    // You can enhance this to detect weekends
-    return nights * resort.priceRegular;
-  };
-
-  const nights = calculateNights(formData.checkIn, formData.checkOut);
-  const totalPrice = calculateTotalPrice(nights);
-
-  const validateForm = (): boolean => {
+  const validateForm = (opts?: { focus?: boolean }): boolean => {
+    const data = formDataRef.current;
     const newErrors: Record<string, string> = {};
 
-    if (!formData.checkIn) {
+    if (!data.checkIn) {
       newErrors.checkIn = "يرجى اختيار تاريخ الدخول";
     }
-    if (!formData.checkOut) {
+    if (!data.checkOut) {
       newErrors.checkOut = "يرجى اختيار تاريخ الخروج";
     }
-    if (formData.checkIn && formData.checkOut) {
-      const checkInDate = new Date(formData.checkIn);
-      const checkOutDate = new Date(formData.checkOut);
+    if (data.checkIn && data.checkOut) {
+      const checkInDate = new Date(data.checkIn);
+      const checkOutDate = new Date(data.checkOut);
       if (checkOutDate <= checkInDate) {
         newErrors.checkOut = "تاريخ الخروج يجب أن يكون بعد تاريخ الدخول";
       }
     }
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = "يرجى إدخال الاسم الكامل";
+    const guestsNumber = Number(data.guests);
+    if (!Number.isFinite(guestsNumber) || guestsNumber < 1) {
+      newErrors.guests = "يرجى إدخال عدد الضيوف";
     }
-    if (!formData.email.trim()) {
-      newErrors.email = "يرجى إدخال البريد الإلكتروني";
-    }
-    if (!formData.phone.trim()) {
+    if (!data.phone.trim()) {
       newErrors.phone = "يرجى إدخال رقم الهاتف";
-    }
-    if (!formData.acceptedTerms) {
-      newErrors.acceptedTerms = "يجب الموافقة على القوانين والشروط";
     }
 
     setErrors(newErrors);
+
+    if (opts?.focus && Object.keys(newErrors).length) {
+      const order = ["checkIn", "checkOut", "guests", "phone"];
+      const first = order.find((k) => Boolean(newErrors[k]));
+      if (first) focusField(first);
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    const onValidate = (ev: Event) => {
+      const detail = (ev as CustomEvent).detail as { requestId?: string };
+      const ok = validateForm({ focus: true });
+      window.dispatchEvent(
+        new CustomEvent("booking:validated", {
+          detail: { requestId: detail?.requestId, ok },
+        })
+      );
+    };
 
-    if (!validateForm()) {
-      return;
-    }
+    window.addEventListener("booking:validate", onValidate);
+    return () => window.removeEventListener("booking:validate", onValidate);
+  }, []);
 
-    const queryParams = new URLSearchParams({
-      resortName: resort.name,
-      checkIn: formData.checkIn,
-      checkOut: formData.checkOut,
-      nights: nights.toString(),
-      totalPrice: totalPrice.toString(),
-      currency: resort.currency,
-      fullName: formData.fullName,
-      email: formData.email,
-      phone: formData.phone,
-      guests: formData.guests.toString(),
-      specialRequests: formData.specialRequests,
-    });
-
-    router.push(`/payment?${queryParams.toString()}`);
-  };
+  const ErrorIcon = () => (
+    <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-red-500">
+      <svg
+        width="18"
+        height="18"
+        viewBox="0 0 24 24"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2Z"
+          stroke="currentColor"
+          strokeWidth="2"
+        />
+        <path
+          d="M12 7v6"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+        />
+        <path
+          d="M12 17h.01"
+          stroke="currentColor"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+      </svg>
+    </span>
+  );
 
   return (
     <div className="p-6 bg-white rounded-xl dark:bg-[#18181b] border border-gray-200 dark:border-gray-800">
       <h2 className="mb-6 text-2xl font-bold text-heading">احجز الآن</h2>
 
-      <form onSubmit={handleSubmit} className="space-y-5">
+      <div className="space-y-5">
         {/* Check-in & Check-out */}
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
             <label className="block mb-2 text-sm font-medium text-text">
               📅 تاريخ الدخول
             </label>
-            <input
-              type="date"
-              name="checkIn"
-              value={formData.checkIn}
-              onChange={handleChange}
-              min={new Date().toISOString().split("T")[0]}
-              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none ${
-                errors.checkIn ? "border-red-500" : "border-gray-300 dark:border-gray-700"
-              }`}
-            />
+            <div className="relative">
+              {errors.checkIn ? <ErrorIcon /> : null}
+              <input
+                ref={checkInRef}
+                required
+                type="date"
+                name="checkIn"
+                value={formData.checkIn}
+                onChange={handleChange}
+                min={new Date().toISOString().split("T")[0]}
+                className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none ${
+                  errors.checkIn
+                    ? "border-red-500 pl-10"
+                    : "border-gray-300 dark:border-gray-700"
+                }`}
+              />
+            </div>
             {errors.checkIn && (
               <p className="mt-1 text-xs text-red-500">{errors.checkIn}</p>
             )}
@@ -145,16 +217,23 @@ export default function BookingForm({ resort }: BookingFormProps) {
             <label className="block mb-2 text-sm font-medium text-text">
               📅 تاريخ الخروج
             </label>
-            <input
-              type="date"
-              name="checkOut"
-              value={formData.checkOut}
-              onChange={handleChange}
-              min={formData.checkIn || new Date().toISOString().split("T")[0]}
-              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none ${
-                errors.checkOut ? "border-red-500" : "border-gray-300 dark:border-gray-700"
-              }`}
-            />
+            <div className="relative">
+              {errors.checkOut ? <ErrorIcon /> : null}
+              <input
+                ref={checkOutRef}
+                required
+                type="date"
+                name="checkOut"
+                value={formData.checkOut}
+                onChange={handleChange}
+                min={formData.checkIn || new Date().toISOString().split("T")[0]}
+                className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none ${
+                  errors.checkOut
+                    ? "border-red-500 pl-10"
+                    : "border-gray-300 dark:border-gray-700"
+                }`}
+              />
+            </div>
             {errors.checkOut && (
               <p className="mt-1 text-xs text-red-500">{errors.checkOut}</p>
             )}
@@ -166,91 +245,52 @@ export default function BookingForm({ resort }: BookingFormProps) {
           <label className="block mb-2 text-sm font-medium text-text">
             👥 عدد الضيوف
           </label>
-          <input
-            type="number"
-            name="guests"
-            value={formData.guests}
-            onChange={handleChange}
-            min="1"
-            max="12"
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg dark:border-gray-700 bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none"
-          />
-        </div>
-
-        {/* Full Name */}
-        <div>
-          <label className="block mb-2 text-sm font-medium text-text">
-            👤 الاسم الكامل
-          </label>
-          <input
-            type="text"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            placeholder="أدخل اسمك الكامل"
-            className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none ${
-              errors.fullName ? "border-red-500" : "border-gray-300 dark:border-gray-700"
-            }`}
-          />
-          {errors.fullName && (
-            <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>
+          <div className="relative">
+            {errors.guests ? <ErrorIcon /> : null}
+            <input
+              ref={guestsRef}
+              required
+              type="number"
+              name="guests"
+              value={formData.guests}
+              onChange={handleChange}
+              min="1"
+              max="12"
+              className={`w-full px-4 py-2 border rounded-lg dark:border-gray-700 bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none ${
+                errors.guests ? "border-red-500 pl-10" : "border-gray-300"
+              }`}
+            />
+          </div>
+          {errors.guests && (
+            <p className="mt-1 text-xs text-red-500">{errors.guests}</p>
           )}
         </div>
 
-        {/* Email & Phone */}
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div>
-            <label className="block mb-2 text-sm font-medium text-text">
-              ✉️ البريد الإلكتروني
-            </label>
+        {/* Contact Phone */}
+        <div>
+          <label className="block mb-2 text-sm font-medium text-text">
+            📞 رقم التواصل
+          </label>
+          <div className="relative">
+            {errors.phone ? <ErrorIcon /> : null}
             <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="example@email.com"
-              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none ${
-                errors.email ? "border-red-500" : "border-gray-300 dark:border-gray-700"
-              }`}
-            />
-            {errors.email && (
-              <p className="mt-1 text-xs text-red-500">{errors.email}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="block mb-2 text-sm font-medium text-text">
-              📞 رقم الهاتف
-            </label>
-            <input
+              ref={phoneRef}
+              required
               type="tel"
               name="phone"
               value={formData.phone}
               onChange={handleChange}
               placeholder="+973 XXXX XXXX"
               className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none ${
-                errors.phone ? "border-red-500" : "border-gray-300 dark:border-gray-700"
+                errors.phone
+                  ? "border-red-500 pl-10"
+                  : "border-gray-300 dark:border-gray-700"
               }`}
             />
-            {errors.phone && (
-              <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
-            )}
           </div>
-        </div>
-
-        {/* Special Requests */}
-        <div>
-          <label className="block mb-2 text-sm font-medium text-text">
-            💬 طلبات خاصة (اختياري)
-          </label>
-          <textarea
-            name="specialRequests"
-            value={formData.specialRequests}
-            onChange={handleChange}
-            rows={3}
-            placeholder="أخبرنا إذا كان لديك أي طلبات خاصة..."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg resize-none dark:border-gray-700 bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none"
-          />
+          {errors.phone && (
+            <p className="mt-1 text-xs text-red-500">{errors.phone}</p>
+          )}
         </div>
 
         {/* Price Summary */}
@@ -284,41 +324,12 @@ export default function BookingForm({ resort }: BookingFormProps) {
           </div>
         )}
 
-        {/* Terms Acceptance */}
-        <div className="p-4 border border-gray-300 rounded-lg dark:border-gray-700 bg-gray-50 dark:bg-background/50">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              name="acceptedTerms"
-              checked={formData.acceptedTerms}
-              onChange={handleChange}
-              className="mt-1 w-5 h-5 text-primary border-gray-300 rounded focus:ring-primary"
-            />
-            <span className="text-sm text-text">
-              لقد قرأت ووافقت على{" "}
-              <a
-                href="/policy"
-                target="_blank"
-                className="font-medium underline text-primary hover:text-primary/80"
-              >
-                القوانين والشروط
-              </a>{" "}
-              الخاصة بالحجز
-            </span>
-          </label>
-          {errors.acceptedTerms && (
-            <p className="mt-2 text-xs text-red-500">{errors.acceptedTerms}</p>
-          )}
-        </div>
-
-        {/* Submit Button */}
         <button
-          type="submit"
-          className="w-full px-6 py-4 text-lg font-semibold text-white transition rounded-lg bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          متابعة إلى الدفع
-        </button>
-      </form>
+          type="button"
+          onClick={() => validateForm()}
+          className="hidden"
+        />
+      </div>
     </div>
   );
 }
