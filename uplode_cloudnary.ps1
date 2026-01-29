@@ -7,7 +7,8 @@
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
-
+# Ensure System.Net.Http types are available
+Add-Type -AssemblyName System.Net.Http
 
 
 #region ===== Cloudinary CONFIG (FILL THESE) =====

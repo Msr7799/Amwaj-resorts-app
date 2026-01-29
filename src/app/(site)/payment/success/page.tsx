@@ -46,10 +46,40 @@ export default async function PaymentSuccessPage({
     );
   }
 
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
-  const lineItems = await stripe.checkout.sessions.listLineItems(sessionId, {
-    limit: 10,
-  });
+  let session: Stripe.Checkout.Session;
+  let lineItems: Stripe.ApiList<Stripe.LineItem>;
+
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+    lineItems = await stripe.checkout.sessions.listLineItems(sessionId, {
+      limit: 10,
+    });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "خطأ غير معروف";
+    return (
+      <main className="min-h-screen pt-28 pb-16 bg-gray-50 dark:bg-background">
+        <div className="px-4 mx-auto max-w-3xl sm:px-6 xl:px-4">
+          <div className="p-6 bg-white rounded-xl dark:bg-[#18181b] border border-gray-200 dark:border-gray-800">
+            <h1 className="text-2xl font-bold text-heading text-red-600">خطأ في استرجاع بيانات الدفع</h1>
+            <p className="mt-2 text-text">فشل الاتصال بـ Stripe لاسترجاع تفاصيل العملية.</p>
+            <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-900 rounded-lg">
+              <p className="text-sm text-text"><strong>Session ID:</strong> {sessionId}</p>
+              <p className="text-sm text-text mt-2"><strong>الخطأ:</strong> {errorMessage}</p>
+            </div>
+            <p className="mt-4 text-sm text-text">
+              يرجى التواصل مع الدعم الفني وإرسال رقم العملية أعلاه.
+            </p>
+            <Link
+              href="/resorts"
+              className="inline-flex mt-6 items-center justify-center px-5 py-3 text-sm font-medium border rounded-xl border-background-hover text-heading hover:bg-background-hover transition"
+            >
+              رجوع لكل الشاليهات
+            </Link>
+          </div>
+        </div>
+      </main>
+    );
+  }
 
   const md = session.metadata ?? {};
   const resortName = md.resortName || "";

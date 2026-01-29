@@ -47,15 +47,33 @@ export async function GET(req: NextRequest) {
     return new Response("Missing session_id", { status: 400 });
   }
 
-  const session = await stripe.checkout.sessions.retrieve(sessionId);
+  let session: Stripe.Checkout.Session;
+  let lineItems: Stripe.ApiList<Stripe.LineItem>;
+
+  try {
+    session = await stripe.checkout.sessions.retrieve(sessionId);
+    lineItems = await stripe.checkout.sessions.listLineItems(sessionId, {
+      limit: 10,
+    });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Invoice API - Stripe retrieval error:", errorMessage, "Session ID:", sessionId);
+    return new Response(
+      JSON.stringify({ 
+        error: "Failed to retrieve Stripe session", 
+        message: errorMessage,
+        sessionId 
+      }), 
+      { 
+        status: 500,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
+  }
 
   if (session.payment_status !== "paid") {
     return new Response("Payment not confirmed", { status: 400 });
   }
-
-  const lineItems = await stripe.checkout.sessions.listLineItems(sessionId, {
-    limit: 10,
-  });
 
   const currency = session.currency || "";
   const md = session.metadata ?? {};
