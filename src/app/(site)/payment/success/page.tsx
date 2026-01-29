@@ -20,6 +20,13 @@ export default async function PaymentSuccessPage({
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
+  console.log("Success Page: Rendering with searchParams", {
+    hasSessionId: !!searchParams.session_id,
+    hasSessionIdAlt: !!searchParams.sessionId,
+    hasCheckoutSessionId: !!searchParams.checkout_session_id,
+    allKeys: Object.keys(searchParams)
+  });
+
   const sessionIdRaw =
     searchParams.session_id ??
     searchParams.sessionId ??
@@ -27,6 +34,7 @@ export default async function PaymentSuccessPage({
   const sessionId = Array.isArray(sessionIdRaw) ? sessionIdRaw[0] : sessionIdRaw;
 
   if (!sessionId) {
+    console.error("Success Page: No session_id found in URL");
     return (
       <main className="min-h-screen pt-28 pb-16 bg-gray-50 dark:bg-background">
         <div className="px-4 mx-auto max-w-3xl sm:px-6 xl:px-4">
@@ -49,12 +57,25 @@ export default async function PaymentSuccessPage({
   let session: Stripe.Checkout.Session;
   let lineItems: Stripe.ApiList<Stripe.LineItem>;
 
+  console.log("Success Page: Retrieving session from Stripe", { sessionId });
+
   try {
     session = await stripe.checkout.sessions.retrieve(sessionId);
+    console.log("Success Page: Session retrieved", {
+      payment_status: session.payment_status,
+      customer_email: session.customer_details?.email,
+      amount_total: session.amount_total,
+    });
+
     lineItems = await stripe.checkout.sessions.listLineItems(sessionId, {
       limit: 10,
     });
+    console.log("Success Page: Line items retrieved", { count: lineItems.data.length });
   } catch (error: unknown) {
+    console.error("Success Page: Failed to retrieve session", {
+      sessionId,
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
     const errorMessage = error instanceof Error ? error.message : "خطأ غير معروف";
     return (
       <main className="min-h-screen pt-28 pb-16 bg-gray-50 dark:bg-background">

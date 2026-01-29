@@ -25,7 +25,19 @@ function ensureSessionIdParam(url: string) {
 
 export async function POST(req: NextRequest) {
   try {
+    console.log("Checkout API: Request received");
     const body = await req.json();
+    console.log("Checkout API: Request body", {
+      resortId: body.resortId,
+      resortName: body.resortName,
+      checkIn: body.checkIn,
+      checkOut: body.checkOut,
+      nights: body.nights,
+      fullName: body.fullName,
+      email: body.email,
+      phone: body.phone,
+      guests: body.guests
+    });
     const {
       resortId,
       resortName,
@@ -40,6 +52,14 @@ export async function POST(req: NextRequest) {
       phone,
       guests,
     } = body;
+
+    if (!resortName || !checkIn || !checkOut || !phone || !email) {
+      console.error("Checkout API: Missing required fields", { resortName, checkIn, checkOut, phone, email });
+      return NextResponse.json(
+        { error: "جميع الحقول مطلوبة" },
+        { status: 400 }
+      );
+    }
 
     const currencyCode = currency === "د.ب" ? "bhd" : "usd";
     const minorUnitMultiplier = currencyCode === "bhd" ? 1000 : 100;
@@ -74,6 +94,14 @@ export async function POST(req: NextRequest) {
       (isLocalOrigin || !containsLocalhost(envCancelUrl))
         ? envCancelUrl
         : `${origin}/payment?canceled=1`;
+
+    console.log("Checkout API: Creating Stripe session...", {
+      successUrl,
+      cancelUrl,
+      bookingAmount,
+      depositAmount,
+      currencyCode
+    });
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -117,18 +145,26 @@ export async function POST(req: NextRequest) {
         resortName,
         checkIn,
         checkOut,
-        nights,
+        nights: String(nights),
         currency,
-        ...(fullName ? { fullName } : {}),
-        phone,
-        ...(guests ? { guests } : {}),
+        fullName: fullName || "",
+        phone: phone || "",
+        ...(guests ? { guests: String(guests) } : {}),
         ...(deposit != null ? { deposit: String(deposit) } : {}),
       },
     });
 
+    console.log("Checkout API: Session created successfully", {
+      sessionId: session.id,
+      url: session.url
+    });
+
     return NextResponse.json({ sessionId: session.id, url: session.url });
   } catch (error: unknown) {
-    console.error("Stripe checkout error:", error);
+    console.error("Checkout API: Error creating session", {
+      error: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return NextResponse.json(
       { error: "فشل إنشاء جلسة الدفع" },
       { status: 500 }

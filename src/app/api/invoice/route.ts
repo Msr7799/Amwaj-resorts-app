@@ -35,6 +35,11 @@ function formatDateForInvoice(d: Date) {
 }
 
 export async function GET(req: NextRequest) {
+  console.log("Invoice API: Request received", {
+    url: req.url,
+    searchParams: Object.fromEntries(req.nextUrl.searchParams.entries())
+  });
+
   const sessionId =
     req.nextUrl.searchParams.get("session_id") ||
     req.nextUrl.searchParams.get("sessionId") ||
@@ -44,20 +49,35 @@ export async function GET(req: NextRequest) {
   const contentDisposition = disposition === "inline" ? "inline" : "attachment";
 
   if (!sessionId) {
+    console.error("Invoice API: Missing session_id parameter");
     return new Response("Missing session_id", { status: 400 });
   }
+
+  console.log("Invoice API: Processing session_id", sessionId);
 
   let session: Stripe.Checkout.Session;
   let lineItems: Stripe.ApiList<Stripe.LineItem>;
 
   try {
+    console.log("Invoice API: Retrieving Stripe session...");
     session = await stripe.checkout.sessions.retrieve(sessionId);
+    console.log("Invoice API: Session retrieved successfully", {
+      payment_status: session.payment_status,
+      customer_email: session.customer_details?.email,
+      amount_total: session.amount_total
+    });
+    
     lineItems = await stripe.checkout.sessions.listLineItems(sessionId, {
       limit: 10,
     });
+    console.log("Invoice API: Line items retrieved", { count: lineItems.data.length });
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Invoice API - Stripe retrieval error:", errorMessage, "Session ID:", sessionId);
+    console.error("Invoice API - Stripe retrieval error:", {
+      error: errorMessage,
+      sessionId,
+      stack: error instanceof Error ? error.stack : undefined
+    });
     return new Response(
       JSON.stringify({ 
         error: "Failed to retrieve Stripe session", 
@@ -72,8 +92,14 @@ export async function GET(req: NextRequest) {
   }
 
   if (session.payment_status !== "paid") {
+    console.warn("Invoice API: Payment not confirmed", {
+      sessionId,
+      payment_status: session.payment_status
+    });
     return new Response("Payment not confirmed", { status: 400 });
   }
+
+  console.log("Invoice API: Payment confirmed, generating PDF...");
 
   const currency = session.currency || "";
   const md = session.metadata ?? {};
@@ -130,8 +156,8 @@ export async function GET(req: NextRequest) {
       width: dims.width,
       height: dims.height,
     });
-  } catch {
-    // ignore
+  } catch (err) {
+    console.warn("Invoice API: Failed to load logo, continuing without it:", err instanceof Error ? err.message : err);
   }
 
   const marginX = 50;
@@ -321,6 +347,12 @@ export async function GET(req: NextRequest) {
   page.drawText(formatMoneyFromMinor(totalMinor, currency), { x: totalsXValue, y: totalsY + 4, size: 10, font: fontBold, color: rgb(0.1, 0.1, 0.1) });
 
   const pdfBytes = await pdfDoc.save();
+  
+  console.log("Invoice API: PDF generated successfully", {
+    sessionId,
+    pdfSize: pdfBytes.length,
+    disposition: contentDisposition
+  });
 
   return new Response(Buffer.from(pdfBytes), {
     status: 200,

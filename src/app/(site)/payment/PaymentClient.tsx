@@ -117,6 +117,11 @@ export default function PaymentClient() {
       return;
     }
 
+    if (!effective.fullName || effective.fullName.trim().length < 2) {
+      setError("يرجى إدخال الاسم الكامل");
+      return;
+    }
+
     if (!pricing.resortName) {
       setError("تعذر تحديد الشاليه. يرجى الرجوع وإعادة المحاولة.");
       return;
@@ -131,32 +136,50 @@ export default function PaymentClient() {
     setError("");
 
     try {
+      const paymentData = {
+        resortId,
+        resortName: pricing.resortName,
+        checkIn: effective.checkIn,
+        checkOut: effective.checkOut,
+        nights: String(pricing.nights),
+        totalPrice: String(pricing.subtotal),
+        currency: pricing.currency,
+        deposit: pricing.deposit,
+        fullName: effective.fullName.trim(),
+        email: effective.email.trim(),
+        phone: effective.phone.trim(),
+        guests: effective.guests || "1",
+      };
+
+      console.log("PaymentClient: Initiating checkout", {
+        resortName: paymentData.resortName,
+        checkIn: paymentData.checkIn,
+        checkOut: paymentData.checkOut,
+        nights: paymentData.nights,
+        hasFullName: !!paymentData.fullName,
+        hasEmail: !!paymentData.email,
+        hasPhone: !!paymentData.phone,
+      });
+
       const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          resortId,
-          resortName: pricing.resortName,
-          checkIn: effective.checkIn,
-          checkOut: effective.checkOut,
-          nights: String(pricing.nights),
-          totalPrice: String(pricing.subtotal),
-          currency: pricing.currency,
-          deposit: pricing.deposit,
-          fullName: effective.fullName,
-          email: effective.email,
-          phone: effective.phone,
-          guests: effective.guests,
-        }),
+        body: JSON.stringify(paymentData),
       });
 
       const data = await response.json();
 
       if (!response.ok) {
+        console.error("PaymentClient: Checkout API error", data);
         throw new Error(data.error || "فشل إنشاء جلسة الدفع");
       }
+
+      console.log("PaymentClient: Checkout session created", {
+        sessionId: data.sessionId,
+        hasUrl: !!data.url
+      });
 
       const stripe = await stripePromise;
       if (!stripe) {
@@ -165,9 +188,12 @@ export default function PaymentClient() {
 
       try {
         sessionStorage.setItem("lastStripeSessionId", data.sessionId);
-      } catch {
-        // ignore
+        console.log("PaymentClient: Session ID saved to sessionStorage");
+      } catch (err) {
+        console.warn("PaymentClient: Failed to save session ID", err);
       }
+
+      console.log("PaymentClient: Redirecting to Stripe checkout...");
 
       const { error: stripeError } = await stripe.redirectToCheckout({
         sessionId: data.sessionId,
