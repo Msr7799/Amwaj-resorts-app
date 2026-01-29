@@ -10,12 +10,32 @@ export default function ContactPage() {
         </p>
 
         <div className="grid gap-6 mt-6 lg:grid-cols-2">
-          <div className="p-6 bg-white border rounded-2xl border-gray-3">
-            <h2 className="text-lg font-semibold text-dark">معلومات التواصل</h2>
+          <div className="p-6 bg-background border rounded-2xl border-gray-3">
+            <h2 className="text-lg font-semibold text-success">معلومات التواصل</h2>
 
             <ul className="mt-4 space-y-3 text-gray-700">
               <li>
-                📞 الهاتف: <span className="text-gray-500">(ضع رقمك هنا)</span>
+                📞 الهاتف: 
+                    {/* WhatsApp Support Button */}
+            <a
+              href="https://wa.me/97336118277?text=مرحباً، أحتاج مساعدة في عملية الدفع"
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center justify-center gap-3 px-6 py-4 text-black/70 transition rounded-lg bg-green-light-3 hover:bg-[#20BA59]"
+            >
+              <img
+                src="/payment/whatsapp-logo.svg"
+                alt="WhatsApp"
+                className="w-10 h-10 backdrop-brightness-300 rounded-sm border border-gray-300 px-1 py-1 "
+              />
+              <div className="text-right">
+                <div className="font-semibold">للمساعدة، في الحجز وطرق الدفع</div>
+                <div className="text-xs ">
+                  <span>متاح 24/7 - </span>
+                  <span className="ltr font-bold text-md ">36118277 (973+) </span>
+                </div>
+              </div>
+            </a>
               </li>
               <li>
                 ✉️ الإيميل: <span className="text-gray-500">(ضع إيميلك هنا)</span>
@@ -28,7 +48,7 @@ export default function ContactPage() {
             <div className="mt-6 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/resorts"
-                className="inline-flex items-center justify-center px-5 py-3 text-sm font-medium text-white rounded-xl bg-blue hover:bg-blue/90"
+                className="inline-flex items-center justify-center px-5 py-3 text-sm font-semibold text-white rounded-xl bg-blue hover:bg-blue-600"
               >
                 شوف الشاليهات
               </Link>
@@ -36,7 +56,7 @@ export default function ContactPage() {
                 href="https://maps.google.com/?q=26.290121,50.669178"
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center justify-center px-5 py-3 text-sm font-medium border rounded-xl border-gray-3 text-dark hover:bg-gray-1"
+                className="inline-flex items-center justify-center px-5 py-3 text-sm font-semibold border rounded-xl border-gray-3 text-text hover:border-dark transition-all duration-200 "
               >
                 افتح الموقع في الخرائط
               </a>

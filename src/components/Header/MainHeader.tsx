@@ -63,23 +63,23 @@ const MainHeader = ({ headerData }: IProps) => {
             {/* Logo */}
             <div>
               <Link className="flex items-center gap-0 shrink-0" href="/">
-                  <span className="amwaj-brand-text"> Amwaj Resort&apos;s </span>
+                  {/* <span className="amwaj-brand-text"> Amwaj Resort&apos;s </span> */}
                 <div className="amwaj-brand-lockup">
                   <Image
-                    src="/logo-light.png"
+                    src="/logo.svg"
                     alt="Logo"
-                    width={40}
-                    height={40}
+                    width={100}
+                    height={100}
                     priority
-                    className="amwaj-brand-mark dark:hidden"
+                    className="amwaj-brand-mark !w-[300px] !h-[200px] dark:hidden"
                   />
                   <Image
-                    src="/logo-dark.png"
+                    src="/logo.svg"
                     alt="Logo"
-                    width={40}
-                    height={40}
+                    width={100}
+                    height={100}
                     priority
-                    className="amwaj-brand-mark hidden dark:block"
+                    className="amwaj-brand-mark !w-[300px] !h-[200px] hidden dark:block"
                   />
                 
                 </div>

@@ -1,6 +1,8 @@
 import Stripe from "stripe";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   // apiVersion intentionally omitted to match the installed Stripe SDK types
 });
@@ -143,6 +145,14 @@ export default async function PaymentSuccessPage({
             >
               تحميل الفاتورة PDF
             </a>
+            <a
+              href={`/api/invoice?session_id=${encodeURIComponent(sessionId)}&disposition=inline`}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center justify-center px-5 py-3 text-sm font-medium border rounded-xl border-background-hover text-heading hover:bg-background-hover transition"
+            >
+              عرض الفاتورة
+            </a>
             <Link
               href="/resorts"
               className="inline-flex items-center justify-center px-5 py-3 text-sm font-medium border rounded-xl border-background-hover text-heading hover:bg-background-hover transition"
@@ -158,6 +168,17 @@ export default async function PaymentSuccessPage({
               {session.customer_details?.email ? (
                 <div>البريد: <span className="text-heading font-medium">{session.customer_details.email}</span></div>
               ) : null}
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-[#18181b]">
+            <h2 className="font-semibold text-heading">الفاتورة</h2>
+            <div className="mt-3 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-background">
+              <iframe
+                title="Invoice"
+                src={`/api/invoice?session_id=${encodeURIComponent(sessionId)}&disposition=inline`}
+                className="w-full h-[720px]"
+              />
             </div>
           </div>
         </div>

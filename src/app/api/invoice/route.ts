@@ -1,6 +1,8 @@
 import { NextRequest } from "next/server";
 import Stripe from "stripe";
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import fs from "node:fs/promises";
+import path from "node:path";
 
 export const runtime = "nodejs";
 
@@ -20,8 +22,22 @@ function formatMoneyFromMinor(amountMinor: number, currency?: string) {
   return `${(amountMinor / divisor).toFixed(fraction)} ${code}`;
 }
 
+function formatDateForInvoice(d: Date) {
+  try {
+    return new Intl.DateTimeFormat("ar-BH", {
+      day: "2-digit",
+      month: "long",
+      year: "numeric",
+    }).format(d);
+  } catch {
+    return d.toISOString().slice(0, 10);
+  }
+}
+
 export async function GET(req: NextRequest) {
   const sessionId = req.nextUrl.searchParams.get("session_id") || "";
+  const disposition = (req.nextUrl.searchParams.get("disposition") || "attachment").toLowerCase();
+  const contentDisposition = disposition === "inline" ? "inline" : "attachment";
 
   if (!sessionId) {
     return new Response("Missing session_id", { status: 400 });
@@ -58,43 +74,82 @@ export async function GET(req: NextRequest) {
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+  try {
+    let logoBytes: Uint8Array | null = null;
+
+    try {
+      const origin = req.nextUrl.origin;
+      const logoUrl = new URL("/images/logo/logo.png", origin);
+      const res = await fetch(logoUrl);
+      if (res.ok) logoBytes = new Uint8Array(await res.arrayBuffer());
+    } catch {
+      // ignore
+    }
+
+    if (!logoBytes) {
+      const logoPath = path.join(
+        process.cwd(),
+        "public",
+        "images",
+        "logo",
+        "logo.png"
+      );
+      logoBytes = await fs.readFile(logoPath);
+    }
+
+    const logo = await pdfDoc.embedPng(logoBytes);
+
+    const maxW = 155;
+    const scale = maxW / logo.width;
+    const dims = logo.scale(scale);
+    page.drawImage(logo, {
+      x: 595.28 - 50 - dims.width,
+      y: 841.89 - 60 - dims.height,
+      width: dims.width,
+      height: dims.height,
+    });
+  } catch {
+    // ignore
+  }
+
   const marginX = 50;
-  let y = 780;
+  const rightX = 350;
+  let y = 790;
 
-  page.drawText("Amwaj Resorts", {
+  const invoiceNoRaw = session.payment_intent
+    ? String(session.payment_intent)
+    : session.id;
+  const invoiceNo = invoiceNoRaw.slice(-18);
+
+  const issuedAt = new Date((session.created || Math.floor(Date.now() / 1000)) * 1000);
+  const dueAt = new Date(issuedAt.getTime() + 24 * 60 * 60 * 1000);
+
+  const customerName = fullName || session.customer_details?.name || "";
+  const customerEmail = session.customer_details?.email || "";
+
+  page.drawText("Invoice", {
     x: marginX,
     y,
-    size: 18,
+    size: 26,
     font: fontBold,
     color: rgb(0.1, 0.1, 0.1),
   });
 
-  page.drawText("INVOICE", {
-    x: 440,
-    y,
-    size: 18,
-    font: fontBold,
-    color: rgb(0.1, 0.1, 0.1),
-  });
-
-  y -= 35;
-
-  const invoiceNo = session.payment_intent ? String(session.payment_intent) : session.id;
-  const dateStr = new Date().toISOString().slice(0, 10);
-
-  page.drawText(`Invoice No: ${invoiceNo}`, {
+  y -= 22;
+  page.drawText(`Invoice number ${invoiceNo}`, {
     x: marginX,
     y,
     size: 10,
     font,
-    color: rgb(0.2, 0.2, 0.2),
+    color: rgb(0.25, 0.25, 0.25),
   });
-  page.drawText(`Date: ${dateStr}`, {
-    x: 440,
-    y,
-    size: 10,
-    font,
-    color: rgb(0.2, 0.2, 0.2),
+
+  page.drawText("AMWAJ RESORTS", {
+    x: 390,
+    y: 792,
+    size: 16,
+    font: fontBold,
+    color: rgb(0.15, 0.35, 0.65),
   });
 
   y -= 30;
@@ -102,115 +157,146 @@ export async function GET(req: NextRequest) {
     start: { x: marginX, y },
     end: { x: 545, y },
     thickness: 1,
-    color: rgb(0.85, 0.85, 0.85),
+    color: rgb(0.9, 0.9, 0.9),
   });
 
-  y -= 25;
+  y -= 26;
+  page.drawText("Date of issue", { x: marginX, y, size: 10, font, color: rgb(0.35, 0.35, 0.35) });
+  page.drawText(formatDateForInvoice(issuedAt), { x: marginX + 90, y, size: 10, font, color: rgb(0.1, 0.1, 0.1) });
 
-  page.drawText("Customer", {
+  y -= 16;
+  page.drawText("Date due", { x: marginX, y, size: 10, font, color: rgb(0.35, 0.35, 0.35) });
+  page.drawText(formatDateForInvoice(dueAt), { x: marginX + 90, y, size: 10, font, color: rgb(0.1, 0.1, 0.1) });
+
+  y -= 28;
+  page.drawText("amwaj resorts", {
     x: marginX,
     y,
     size: 12,
     font: fontBold,
     color: rgb(0.1, 0.1, 0.1),
   });
-
   y -= 16;
-  const email = session.customer_details?.email || "";
-  if (fullName) {
-    page.drawText(`Name: ${fullName}`, { x: marginX, y, size: 10, font });
-    y -= 14;
-  }
-  if (email) {
-    page.drawText(`Email: ${email}`, { x: marginX, y, size: 10, font });
-    y -= 14;
-  }
-  if (phone) {
-    page.drawText(`Phone: ${phone}`, { x: marginX, y, size: 10, font });
-    y -= 14;
-  }
-  if (guests) {
-    page.drawText(`Guests: ${guests}`, { x: marginX, y, size: 10, font });
-    y -= 14;
-  }
-
-  y -= 10;
-  page.drawText("Booking", {
+  page.drawText("BAHRAIN - AMWAJ", {
     x: marginX,
     y,
-    size: 12,
+    size: 11,
+    font,
+    color: rgb(0.2, 0.2, 0.2),
+  });
+
+  page.drawText("Bill to", {
+    x: rightX,
+    y: y + 16,
+    size: 11,
     font: fontBold,
     color: rgb(0.1, 0.1, 0.1),
   });
+  if (customerName) {
+    page.drawText(customerName, {
+      x: rightX,
+      y,
+      size: 11,
+      font,
+      color: rgb(0.2, 0.2, 0.2),
+    });
+  }
+  if (customerEmail) {
+    page.drawText(customerEmail, {
+      x: rightX,
+      y: y - 14,
+      size: 10,
+      font,
+      color: rgb(0.35, 0.35, 0.35),
+    });
+  }
 
-  y -= 16;
-  if (resortName) {
-    page.drawText(`Resort: ${resortName}`, { x: marginX, y, size: 10, font });
-    y -= 14;
-  }
-  if (checkIn) {
-    page.drawText(`Check-in: ${checkIn}`, { x: marginX, y, size: 10, font });
-    y -= 14;
-  }
-  if (checkOut) {
-    page.drawText(`Check-out: ${checkOut}`, { x: marginX, y, size: 10, font });
-    y -= 14;
-  }
-  if (nights) {
-    page.drawText(`Nights: ${nights}`, { x: marginX, y, size: 10, font });
-    y -= 14;
-  }
+  const dueLineY = y - 58;
+  page.drawText(
+    `${formatMoneyFromMinor(totalMinor, currency)} due ${formatDateForInvoice(dueAt)}`,
+    {
+      x: marginX,
+      y: dueLineY,
+      size: 10,
+      font,
+      color: rgb(0.1, 0.1, 0.1),
+    }
+  );
+  page.drawText("Pay online", {
+    x: marginX,
+    y: dueLineY - 16,
+    size: 10,
+    font,
+    color: rgb(0.1, 0.35, 0.85),
+  });
 
-  y -= 25;
-
+  let tableY = dueLineY - 56;
   const tableX = marginX;
   const tableW = 495;
 
-  // Header
-  page.drawRectangle({ x: tableX, y, width: tableW, height: 22, color: rgb(0.95, 0.95, 0.95) });
-  page.drawText("Description", { x: tableX + 10, y: y + 7, size: 10, font: fontBold });
-  page.drawText("Amount", { x: tableX + 410, y: y + 7, size: 10, font: fontBold });
-
-  y -= 22;
-
-  const drawRow = (desc: string, amount: string) => {
-    page.drawRectangle({ x: tableX, y, width: tableW, height: 20, color: rgb(1, 1, 1) });
-    page.drawLine({ start: { x: tableX, y }, end: { x: tableX + tableW, y }, thickness: 1, color: rgb(0.9, 0.9, 0.9) });
-    page.drawText(desc, { x: tableX + 10, y: y + 6, size: 10, font });
-    page.drawText(amount, { x: tableX + 410, y: y + 6, size: 10, font });
-    y -= 20;
-  };
-
-  drawRow("Booking", formatMoneyFromMinor(bookingMinor, currency));
-  drawRow("Security Deposit", formatMoneyFromMinor(depositMinor, currency));
-
-  y -= 5;
+  const colDescX = tableX + 10;
+  const colQtyX = tableX + 330;
+  const colUnitX = tableX + 390;
+  const colAmtX = tableX + 455;
 
   page.drawLine({
-    start: { x: tableX, y },
-    end: { x: tableX + tableW, y },
+    start: { x: tableX, y: tableY },
+    end: { x: tableX + tableW, y: tableY },
     thickness: 1,
-    color: rgb(0.7, 0.7, 0.7),
+    color: rgb(0.15, 0.15, 0.15),
+  });
+  tableY -= 18;
+
+  page.drawText("Description", { x: colDescX, y: tableY, size: 10, font: fontBold });
+  page.drawText("Qty", { x: colQtyX, y: tableY, size: 10, font: fontBold });
+  page.drawText("Unit price", { x: colUnitX, y: tableY, size: 10, font: fontBold });
+  page.drawText("Amount", { x: colAmtX, y: tableY, size: 10, font: fontBold });
+  tableY -= 10;
+
+  page.drawLine({
+    start: { x: tableX, y: tableY },
+    end: { x: tableX + tableW, y: tableY },
+    thickness: 1,
+    color: rgb(0.85, 0.85, 0.85),
   });
 
-  y -= 20;
-  page.drawText("TOTAL", { x: tableX + 330, y, size: 12, font: fontBold });
-  page.drawText(formatMoneyFromMinor(totalMinor, currency), {
-    x: tableX + 410,
-    y,
-    size: 12,
-    font: fontBold,
-    color: rgb(0.2, 0.45, 0.85),
-  });
+  const rowHeight = 26;
+  const drawRow = (desc: string, amountMinor: number) => {
+    tableY -= rowHeight;
+    page.drawText(desc, { x: colDescX, y: tableY + 10, size: 10, font, color: rgb(0.15, 0.15, 0.15) });
+    page.drawText("1", { x: colQtyX + 8, y: tableY + 10, size: 10, font, color: rgb(0.15, 0.15, 0.15) });
+    const formatted = formatMoneyFromMinor(amountMinor, currency);
+    page.drawText(formatted, { x: colUnitX - 10, y: tableY + 10, size: 10, font, color: rgb(0.15, 0.15, 0.15) });
+    page.drawText(formatted, { x: colAmtX - 25, y: tableY + 10, size: 10, font: fontBold, color: rgb(0.1, 0.1, 0.1) });
 
-  y -= 40;
-  page.drawText("Payment confirmed by Stripe.", {
-    x: marginX,
-    y,
-    size: 10,
-    font,
-    color: rgb(0.35, 0.35, 0.35),
-  });
+    page.drawLine({
+      start: { x: tableX, y: tableY },
+      end: { x: tableX + tableW, y: tableY },
+      thickness: 1,
+      color: rgb(0.93, 0.93, 0.93),
+    });
+  };
+
+  const bookingDescParts = [resortName].filter(Boolean);
+  const bookingDesc = bookingDescParts.length
+    ? bookingDescParts.join(" - ")
+    : "Booking";
+  drawRow(bookingDesc, bookingMinor);
+  drawRow("Security deposit (refundable)", depositMinor);
+
+  const totalsY = tableY - 85;
+  const totalsXLabel = tableX + 320;
+  const totalsXValue = tableX + 430;
+
+  const subtotalMinor = bookingMinor + depositMinor;
+  page.drawText("Subtotal", { x: totalsXLabel, y: totalsY + 40, size: 10, font, color: rgb(0.25, 0.25, 0.25) });
+  page.drawText(formatMoneyFromMinor(subtotalMinor, currency), { x: totalsXValue, y: totalsY + 40, size: 10, font, color: rgb(0.1, 0.1, 0.1) });
+
+  page.drawText("Total Amount", { x: totalsXLabel, y: totalsY + 22, size: 10, font, color: rgb(0.25, 0.25, 0.25) });
+  page.drawText(formatMoneyFromMinor(totalMinor, currency), { x: totalsXValue, y: totalsY + 22, size: 10, font, color: rgb(0.1, 0.1, 0.1) });
+
+  page.drawText("due", { x: totalsXLabel, y: totalsY + 4, size: 10, font: fontBold, color: rgb(0.1, 0.1, 0.1) });
+  page.drawText(formatMoneyFromMinor(totalMinor, currency), { x: totalsXValue, y: totalsY + 4, size: 10, font: fontBold, color: rgb(0.1, 0.1, 0.1) });
 
   const pdfBytes = await pdfDoc.save();
 
@@ -218,7 +304,7 @@ export async function GET(req: NextRequest) {
     status: 200,
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename=invoice-${session.id}.pdf`,
+      "Content-Disposition": `${contentDisposition}; filename=invoice-${session.id}.pdf`,
     },
   });
 }
