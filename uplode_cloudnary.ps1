@@ -8,6 +8,21 @@
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
+
+
+#region ===== Cloudinary CONFIG (FILL THESE) =====
+$CloudName    = "dancebjgn"   # e.g. ""
+$ApiKey       = "453152336852852"   # e.g. ""
+$ApiSecret    = "xEZgc-Sdc2irsZlgA0AuCmETuTo"   # e.g. ""
+$UploadPreset = "Resorts"   # Optional. If set -> unsigned upload. If empty -> signed upload.
+#endregion
+
+#region ===== Local Paths CONFIG (FILL THESE) =====
+$ResortsTsPath = "C:\Users\code4\Desktop\SARA\Amwaj-resorts-app\src\assets\resorts.ts"  # e.g. "C:\project\src\data\resorts.ts" (optional)
+$AssetsRoot    = "C:\Users\code4\Desktop\SARA\Amwaj-resorts-app\public\assets"  # e.g. "C:\project\public\assets"
+$OutputRoot    = "C:\Users\code4\Desktop\SARA"  # e.g. "C:\agoda\cloudinary_out"
+#endregion
+
 #region ===== Upload Behavior CONFIG =====
 $CloudFolderRoot = "amwaj"   # Cloudinary folder root
 $Overwrite       = $true     # overwrite existing public_id

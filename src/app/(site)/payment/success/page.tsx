@@ -1,5 +1,6 @@
 import Stripe from "stripe";
 import Link from "next/link";
+import RecoverSessionClient from "./RecoverSessionClient";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +33,7 @@ export default async function PaymentSuccessPage({
           <div className="p-6 bg-white rounded-xl dark:bg-[#18181b] border border-gray-200 dark:border-gray-800">
             <h1 className="text-2xl font-bold text-heading">تم الدفع بنجاح</h1>
             <p className="mt-2 text-text">لا يمكن العثور على رقم العملية. يرجى الرجوع والتحقق.</p>
+            <RecoverSessionClient />
             <Link
               href="/resorts"
               className="inline-flex mt-6 items-center justify-center px-5 py-3 text-sm font-medium border rounded-xl border-background-hover text-heading hover:bg-background-hover transition"

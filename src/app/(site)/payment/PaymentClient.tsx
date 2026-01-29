@@ -163,6 +163,12 @@ export default function PaymentClient() {
         throw new Error("فشل تحميل Stripe");
       }
 
+      try {
+        sessionStorage.setItem("lastStripeSessionId", data.sessionId);
+      } catch {
+        // ignore
+      }
+
       const { error: stripeError } = await stripe.redirectToCheckout({
         sessionId: data.sessionId,
       });
