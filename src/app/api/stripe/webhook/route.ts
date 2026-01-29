@@ -413,6 +413,13 @@ export async function POST(req: Request) {
     `رقم العملية: ${session.id}\n`;
 
   try {
+    console.log("Webhook: Attempting to send admin notification email...", {
+      from: emailFrom,
+      to: recipients,
+      smtpConfigured,
+      gmailConfigured,
+    });
+
     await transport.sendMail({
       from: emailFrom,
       replyTo: replyTo || undefined,
@@ -421,7 +428,11 @@ export async function POST(req: Request) {
       text,
     });
 
+    console.log("Webhook: Admin email sent successfully");
+
     if (customerEmail) {
+      console.log("Webhook: Generating invoice PDF for customer:", customerEmail);
+      
       const pdfBuffer = await generateInvoicePdf({
         session,
         bookingMinor,
@@ -430,6 +441,8 @@ export async function POST(req: Request) {
         currency,
         origin: inferredOrigin || undefined,
       });
+
+      console.log("Webhook: Invoice PDF generated, sending to customer...");
 
       await transport.sendMail({
         from: emailFrom,
@@ -448,9 +461,36 @@ export async function POST(req: Request) {
           },
         ],
       });
+
+      console.log("Webhook: Customer invoice email sent successfully");
     }
-  } catch {
-    return new Response("Failed to send email", { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    console.error("Webhook: Email send failed:", {
+      error: errorMessage,
+      stack: error instanceof Error ? error.stack : undefined,
+      smtpConfig: {
+        host: smtpHost,
+        port: smtpPort,
+        user: smtpUser,
+        hasPassword: Boolean(smtpPass),
+      },
+      gmailConfig: {
+        hasAppPassword: Boolean(appPassword),
+      },
+    });
+    // Return 200 to prevent Stripe retries, but log the error
+    return new Response(
+      JSON.stringify({ 
+        status: "payment_confirmed_but_email_failed", 
+        error: errorMessage,
+        sessionId: session.id 
+      }), 
+      { 
+        status: 200,
+        headers: { "Content-Type": "application/json" }
+      }
+    );
   }
 
   return new Response("OK", { status: 200 });
