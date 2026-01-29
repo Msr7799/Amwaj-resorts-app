@@ -44,4 +44,4 @@ next-env.d.ts
 
 .env
 
-uplode_cloudnary.ps1
+./uplode_cloudnary.ps1
