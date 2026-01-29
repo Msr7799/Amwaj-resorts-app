@@ -35,7 +35,11 @@ function formatDateForInvoice(d: Date) {
 }
 
 export async function GET(req: NextRequest) {
-  const sessionId = req.nextUrl.searchParams.get("session_id") || "";
+  const sessionId =
+    req.nextUrl.searchParams.get("session_id") ||
+    req.nextUrl.searchParams.get("sessionId") ||
+    req.nextUrl.searchParams.get("checkout_session_id") ||
+    "";
   const disposition = (req.nextUrl.searchParams.get("disposition") || "attachment").toLowerCase();
   const contentDisposition = disposition === "inline" ? "inline" : "attachment";
 

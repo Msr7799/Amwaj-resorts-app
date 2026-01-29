@@ -5,6 +5,24 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   // apiVersion intentionally omitted to match the installed Stripe SDK types
 });
 
+function containsLocalhost(url: string) {
+  return url.includes("localhost") || url.includes("127.0.0.1");
+}
+
+function ensureSessionIdParam(url: string) {
+  const placeholder = "{CHECKOUT_SESSION_ID}";
+
+  if (/[?&]session_id=/i.test(url)) {
+    if (!url.includes(placeholder)) {
+      return url.replace(/([?&]session_id=)[^&]*/i, `$1${placeholder}`);
+    }
+    return url;
+  }
+
+  const sep = url.includes("?") ? "&" : "?";
+  return `${url}${sep}session_id=${placeholder}`;
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
@@ -37,27 +55,23 @@ export async function POST(req: NextRequest) {
       process.env.NEXT_PUBLIC_SITE_URL ||
       "http://localhost:3000";
 
-    const isLocalOrigin =
-      origin.includes("localhost") || origin.includes("127.0.0.1");
+    const isLocalOrigin = containsLocalhost(origin);
 
-    const defaultSuccessUrl = `${origin}/payment/success?session_id={CHECKOUT_SESSION_ID}`;
+    const defaultSuccessUrl = ensureSessionIdParam(`${origin}/payment/success`);
     const envSuccessUrl = process.env.NEXT_PUBLIC_SUCCESS_URL;
 
-    const successUrl =
+    const candidateSuccessUrl =
       envSuccessUrl &&
-      envSuccessUrl.includes("{CHECKOUT_SESSION_ID}") &&
-      (isLocalOrigin ||
-        (!envSuccessUrl.includes("localhost") &&
-          !envSuccessUrl.includes("127.0.0.1")))
+      (isLocalOrigin || !containsLocalhost(envSuccessUrl))
         ? envSuccessUrl
         : defaultSuccessUrl;
+
+    const successUrl = ensureSessionIdParam(candidateSuccessUrl);
 
     const envCancelUrl = process.env.NEXT_PUBLIC_CANCEL_URL;
     const cancelUrl =
       envCancelUrl &&
-      (isLocalOrigin ||
-        (!envCancelUrl.includes("localhost") &&
-          !envCancelUrl.includes("127.0.0.1")))
+      (isLocalOrigin || !containsLocalhost(envCancelUrl))
         ? envCancelUrl
         : `${origin}/payment?canceled=1`;
 
