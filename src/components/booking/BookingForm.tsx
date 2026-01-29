@@ -13,12 +13,14 @@ export default function BookingForm({ resort }: BookingFormProps) {
   const checkInRef = useRef<HTMLInputElement | null>(null);
   const checkOutRef = useRef<HTMLInputElement | null>(null);
   const guestsRef = useRef<HTMLInputElement | null>(null);
+  const fullNameRef = useRef<HTMLInputElement | null>(null);
   const emailRef = useRef<HTMLInputElement | null>(null);
   const phoneRef = useRef<HTMLInputElement | null>(null);
   const [formData, setFormData] = useState({
     checkIn: "",
     checkOut: "",
     guests: 2,
+    fullName: "",
     email: "",
     phone: "",
   });
@@ -94,11 +96,13 @@ export default function BookingForm({ resort }: BookingFormProps) {
           ? checkOutRef.current
           : field === "guests"
             ? guestsRef.current
-            : field === "email"
-              ? emailRef.current
-            : field === "phone"
-              ? phoneRef.current
-              : null;
+            : field === "fullName"
+              ? fullNameRef.current
+              : field === "email"
+                ? emailRef.current
+              : field === "phone"
+                ? phoneRef.current
+                : null;
 
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -126,6 +130,11 @@ export default function BookingForm({ resort }: BookingFormProps) {
     if (!Number.isFinite(guestsNumber) || guestsNumber < 1) {
       newErrors.guests = "يرجى إدخال عدد الضيوف";
     }
+    if (!String((data as typeof formData).fullName ?? "").trim()) {
+      newErrors.fullName = "يرجى إدخال الاسم الكامل";
+    } else if (String((data as typeof formData).fullName ?? "").trim().length < 2) {
+      newErrors.fullName = "الاسم يجب أن يكون حرفين على الأقل";
+    }
     if (!String((data as typeof formData).email ?? "").trim()) {
       newErrors.email = "يرجى إدخال البريد الإلكتروني";
     } else {
@@ -140,7 +149,7 @@ export default function BookingForm({ resort }: BookingFormProps) {
     setErrors(newErrors);
 
     if (opts?.focus && Object.keys(newErrors).length) {
-      const order = ["checkIn", "checkOut", "guests", "email", "phone"];
+      const order = ["checkIn", "checkOut", "guests", "fullName", "email", "phone"];
       const first = order.find((k) => Boolean(newErrors[k]));
       if (first) focusField(first);
     }
@@ -276,6 +285,33 @@ export default function BookingForm({ resort }: BookingFormProps) {
           </div>
           {errors.guests && (
             <p className="mt-1 text-xs text-red-500">{errors.guests}</p>
+          )}
+        </div>
+
+        {/* Full Name */}
+        <div>
+          <label className="block mb-2 text-sm font-medium text-text">
+            👤 الاسم الكامل
+          </label>
+          <div className="relative">
+            {errors.fullName ? <ErrorIcon /> : null}
+            <input
+              ref={fullNameRef}
+              required
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              placeholder="أدخل اسمك الكامل"
+              className={`w-full px-4 py-2 border rounded-lg bg-white dark:bg-background text-heading focus:ring-2 focus:ring-primary focus:outline-none ${
+                errors.fullName
+                  ? "border-red-500 pl-10"
+                  : "border-gray-300 dark:border-gray-700"
+              }`}
+            />
+          </div>
+          {errors.fullName && (
+            <p className="mt-1 text-xs text-red-500">{errors.fullName}</p>
           )}
         </div>
 

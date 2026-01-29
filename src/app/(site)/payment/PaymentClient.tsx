@@ -61,7 +61,7 @@ export default function PaymentClient() {
       checkOut: checkOut || draft?.checkOut || "",
       phone: phone || draft?.phone || "",
       guests: guests || (draft?.guests != null ? String(draft.guests) : ""),
-      fullName,
+      fullName: fullName || (draft as any)?.fullName || "",
       email: email || draft?.email || "",
     };
   }, [checkIn, checkOut, phone, guests, draft, fullName, email]);
@@ -332,10 +332,10 @@ export default function PaymentClient() {
             <div className="p-6 bg-white rounded-xl dark:bg-[#18181b] border border-gray-200 dark:border-gray-800">
               <h2 className="mb-4 text-xl font-semibold text-heading">بيانات التواصل</h2>
               <div className="space-y-2 text-sm">
-                {fullName ? (
+                {effective.fullName ? (
                   <div className="flex justify-between">
                     <span className="text-text">الاسم:</span>
-                    <span className="font-medium text-heading">{fullName}</span>
+                    <span className="font-medium text-heading">{effective.fullName}</span>
                   </div>
                 ) : null}
                 {effective.email ? (

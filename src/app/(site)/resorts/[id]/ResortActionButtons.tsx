@@ -63,6 +63,33 @@ export default function ResortActionButtons({
     e.preventDefault();
     const ok = await requestBookingValidation();
     if (!ok) return;
+
+    try {
+      const keys = Object.keys(sessionStorage);
+      const draftKey = keys.find((k) => k.startsWith("bookingDraft:"));
+      if (draftKey) {
+        const raw = sessionStorage.getItem(draftKey);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && typeof parsed === "object") {
+            const params = new URLSearchParams(new URL(href, window.location.origin).search);
+            
+            if (parsed.checkIn) params.set("checkIn", String(parsed.checkIn));
+            if (parsed.checkOut) params.set("checkOut", String(parsed.checkOut));
+            if (parsed.guests != null) params.set("guests", String(parsed.guests));
+            if (parsed.fullName) params.set("fullName", String(parsed.fullName));
+            if (parsed.email) params.set("email", String(parsed.email));
+            if (parsed.phone) params.set("phone", String(parsed.phone));
+            
+            const baseHref = href.split("?")[0];
+            href = `${baseHref}?${params.toString()}`;
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     router.push(href);
   };
 
