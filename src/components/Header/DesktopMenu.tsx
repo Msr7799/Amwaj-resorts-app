@@ -24,7 +24,7 @@ const DesktopMenu = ({ menuData, stickyMenu }: DesktopMenuProps) => {
 
   return (
     <nav>
-      <ul className="flex items-center gap-3">
+      <ul className="flex items-center gap-10">
         {menuData.map((menuItem, i) => (
           <li
             key={i}

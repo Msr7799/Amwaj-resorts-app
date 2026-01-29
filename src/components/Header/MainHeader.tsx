@@ -59,27 +59,27 @@ const MainHeader = ({ headerData }: IProps) => {
       >
         {/* Main Header */}
         <div className="px-3 mx-auto max-w-7xl sm:px-6 xl:px-0 ">
-          <div className="flex items-center justify-between py-2">
+          <div className="flex items-center justify-between  py-2">
             {/* Logo */}
-            <div>
-              <Link className="flex items-center gap-0 shrink-0" href="/">
+            <div >
+              <Link className="absolute left-6 right-3 flex items-center gap-0 shrink-0" href="/">
                   {/* <span className="amwaj-brand-text"> Amwaj Resort&apos;s </span> */}
-                <div className="amwaj-brand-lockup">
+                <div className="relative bottom-0   max-w-[500px] max-h-[210px] ">
                   <Image
                     src="/logo.svg"
                     alt="Logo"
-                    width={100}
-                    height={100}
+                    width={500}
+                    height={250}
                     priority
-                    className="amwaj-brand-mark !w-[300px] !h-[200px] dark:hidden"
+                    className="relative w-[250px] h-[100px] mr-12 border-2 border-meta-2/60 bottom-3 rounded-lg dark:hidden"
                   />
                   <Image
                     src="/logo.svg"
                     alt="Logo"
-                    width={100}
-                    height={100}
+                    width={500}
+                    height={150}
                     priority
-                    className="amwaj-brand-mark !w-[300px] !h-[200px] hidden dark:block"
+                    className="relative w-[250px] h-[100px] mr-12 border-2 border-meta-2/60 bottom-3 rounded-lg hidden dark:block"
                   />
                 
                 </div>
@@ -87,13 +87,15 @@ const MainHeader = ({ headerData }: IProps) => {
             </div>
 
             {/* Desktop Menu - Hidden on mobile */}
-            <div className="hidden xl:block">
+            <div className="hidden xl:block mt-25 mr-45">
               <DesktopMenu menuData={menuData} stickyMenu={stickyMenu} />
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center mx-8">
+              <div className="hidden xl:block mt-25 ml-5">
               <ThemeToggle />
+              </div>
               
               <RippleButton
                 onClick={() => {
@@ -103,7 +105,7 @@ const MainHeader = ({ headerData }: IProps) => {
                     window.location.href = paymentLink;
                   }
                 }}
-                className="hidden sm:inline-flex bg-black text-white border-2 border-white"
+                className="hidden mt-25 sm:inline-flex bg-black text-white border-2 border-white"
                 rippleColor="rgba(120, 183, 225, 0.6)"
               >
                 احجز الآن

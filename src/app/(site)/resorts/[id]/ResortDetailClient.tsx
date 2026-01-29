@@ -60,7 +60,9 @@ export function ResortDetailClient({ resort, galleryImages, resortId, video }: R
           "/assets/resort1/21.jpeg",
         ],
       };
-    } else {
+    }
+
+    if (resortId === "resort2") {
       return {
         bedrooms: [
           "/assets/resort2/4.jpeg",
@@ -91,6 +93,55 @@ export function ResortDetailClient({ resort, galleryImages, resortId, video }: R
         ],
       };
     }
+
+    if (resortId === "resort3") {
+      return {
+        bedrooms: [
+          "/assets/resort3/1.jpeg",
+          "/assets/resort3/2.jpeg",
+          "/assets/resort3/3.jpeg",
+        ],
+        bathrooms: [
+          "/assets/resort3/8.jpeg",
+        ],
+        facilities: [
+          "/assets/resort3/4.jpeg",
+          "/assets/resort3/5.jpeg",
+          "/assets/resort3/6.jpeg",
+          "/assets/resort3/7.jpeg",
+        ],
+        pool: [
+          "/assets/resort3/9.jpeg",
+          "/assets/resort3/10.jpeg",
+          "/assets/resort3/11.jpeg",
+          "/assets/resort3/12.jpeg",
+        ],
+      };
+    }
+
+    if (resortId === "apartment1") {
+      return {
+        bedrooms: [
+          "/assets/apartment1/1.jpeg",
+          "/assets/apartment1/2.jpeg",
+          "/assets/apartment1/3.jpeg",
+          "/assets/apartment1/4.jpeg",
+          "/assets/apartment1/5.jpeg",
+        ],
+        facilities: [
+          "/assets/apartment1/6.jpeg",
+          "/assets/apartment1/7.jpeg",
+          "/assets/apartment1/8.jpeg",
+          "/assets/apartment1/9.jpeg",
+          "/assets/apartment1/10.jpeg",
+        ],
+      };
+    }
+
+    return {
+      bedrooms: resort.images.slice(0, 6),
+      facilities: resort.images.slice(6, 12),
+    };
   };
 
   const categorizedImages = getCategorizedImages();
@@ -211,7 +262,7 @@ export function ResortDetailClient({ resort, galleryImages, resortId, video }: R
         </div>
       ),
     },
-  ] : [
+  ] : resortId === "resort2" ? [
     {
       title: "غرف النوم",
       content: (
@@ -321,6 +372,167 @@ export function ResortDetailClient({ resort, galleryImages, resortId, video }: R
                 height={500}
                 className="h-20 w-full rounded-lg object-cover shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] md:h-44 lg:h-60 cursor-pointer hover:opacity-90 transition-opacity"
                 onClick={() => openLightbox(categorizedImages.views || [], index)}
+              />
+            ))}
+          </div>
+        </div>
+      ),
+    },
+  ] : resortId === "resort3" ? [
+    {
+      title: "غرف النوم",
+      content: (
+        <div>
+          <p className="mb-8 text-xs font-normal text-neutral-800 md:text-sm dark:text-neutral-200">
+            غرف نوم ماستر بتصميم مريح، مناسبة للراحة والاسترخاء.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            {categorizedImages.bedrooms?.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt="غرفة نوم"
+                width={500}
+                height={500}
+                className="h-20 w-full rounded-lg object-cover shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] md:h-44 lg:h-60 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => openLightbox(categorizedImages.bedrooms || [], index)}
+              />
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "الصالة",
+      content: (
+        <div>
+          <p className="mb-8 text-xs font-normal text-neutral-800 md:text-sm dark:text-neutral-200">
+            صالة جلوس مريحة مع مساحة مناسبة للتجمع والاسترخاء.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            {categorizedImages.facilities?.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt="صالة"
+                width={500}
+                height={500}
+                className="h-20 w-full rounded-lg object-cover shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] md:h-44 lg:h-60 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => openLightbox(categorizedImages.facilities || [], index)}
+              />
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "حمام الغرف",
+      content: (
+        <div>
+          <p className="mb-8 text-xs font-normal text-neutral-800 md:text-sm dark:text-neutral-200">
+            حمام أنيق ومجهز بالكامل لراحة الضيوف.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            {categorizedImages.bathrooms?.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt="حمام"
+                width={500}
+                height={500}
+                className="h-20 w-full rounded-lg object-cover shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] md:h-44 lg:h-60 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => openLightbox(categorizedImages.bathrooms || [], index)}
+              />
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "المرفقات وبركة السباحة",
+      content: (
+        <div>
+          <p className="mb-8 text-xs font-normal text-neutral-800 md:text-sm dark:text-neutral-200">
+            مسبح خاص بنظام تدفئة يعمل 24 ساعة مع جلسة خارجية وحديقة مطلة على المسبح.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            {categorizedImages.pool?.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt="مسبح"
+                width={500}
+                height={500}
+                className="h-20 w-full rounded-lg object-cover shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] md:h-44 lg:h-60 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => openLightbox(categorizedImages.pool || [], index)}
+              />
+            ))}
+          </div>
+        </div>
+      ),
+    },
+  ] : resortId === "apartment1" ? [
+    {
+      title: "غرف النوم",
+      content: (
+        <div>
+          <p className="mb-8 text-xs font-normal text-neutral-800 md:text-sm dark:text-neutral-200">
+            غرف نوم ماستر بتصميم حديث وخصوصية تامة.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            {categorizedImages.bedrooms?.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt="غرفة نوم"
+                width={500}
+                height={500}
+                className="h-20 w-full rounded-lg object-cover shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] md:h-44 lg:h-60 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => openLightbox(categorizedImages.bedrooms || [], index)}
+              />
+            ))}
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: "صالة المعيشة وطاولة الطعام",
+      content: (
+        <div>
+          <p className="mb-8 text-xs font-normal text-neutral-800 md:text-sm dark:text-neutral-200">
+            صالة معيشة واسعة مع طاولة طعام، مثالية للراحة وقضاء الوقت مع العائلة.
+          </p>
+          <div className="grid grid-cols-2 gap-4">
+            {categorizedImages.facilities?.map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt="صالة معيشة"
+                width={500}
+                height={500}
+                className="h-20 w-full rounded-lg object-cover shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] md:h-44 lg:h-60 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => openLightbox(categorizedImages.facilities || [], index)}
+              />
+            ))}
+          </div>
+        </div>
+      ),
+    },
+  ] : [
+    {
+      title: "الصور",
+      content: (
+        <div>
+          <div className="grid grid-cols-2 gap-4">
+            {galleryImages.slice(0, 8).map((src, index) => (
+              <img
+                key={src}
+                src={src}
+                alt="صورة"
+                width={500}
+                height={500}
+                className="h-20 w-full rounded-lg object-cover shadow-[0_0_24px_rgba(34,_42,_53,_0.06),_0_1px_1px_rgba(0,_0,_0,_0.05),_0_0_0_1px_rgba(34,_42,_53,_0.04),_0_0_4px_rgba(34,_42,_53,_0.08),_0_16px_68px_rgba(47,_48,_55,_0.05),_0_1px_0_rgba(255,_255,_255,_0.1)_inset] md:h-44 lg:h-60 cursor-pointer hover:opacity-90 transition-opacity"
+                onClick={() => openLightbox(galleryImages, index)}
               />
             ))}
           </div>

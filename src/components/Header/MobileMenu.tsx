@@ -81,7 +81,7 @@ const MobileMenu = ({ isOpen, onClose, menuData, headerLogo }: MobileMenuProps) 
               <Link className="block shrink-0" href="/">
                 <div className="amwaj-brand-lockup">
                   <Image
-                    src="/logo.svg"
+                    src="/figma.svg"
                     alt="Logo"
                     width={40}
                     height={40}
@@ -89,7 +89,7 @@ const MobileMenu = ({ isOpen, onClose, menuData, headerLogo }: MobileMenuProps) 
                     className="amwaj-brand-mark dark:hidden"
                   />
                   <Image
-                    src="/logo.svg"
+                    src="/figma.svg"
                     alt="Logo"
                     width={40}
                     height={40}
